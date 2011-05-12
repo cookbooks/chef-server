@@ -39,7 +39,7 @@ include_recipe "apache2::mod_expires"
 include_recipe "apache2::mod_deflate"
 
 directory "/etc/chef/certificates" do
-  owner "root"
+  owner "chef"
   group root_group
   mode "700"
 end
@@ -48,16 +48,16 @@ bash "Create SSL Certificates" do
   cwd "/etc/chef/certificates"
   code <<-EOH
   umask 077
-  openssl genrsa 2048 > chef-server-proxy.key
-  openssl req -subj "#{node['chef_server']['ssl_req']}" -new -x509 -nodes -sha1 -days 3650 -key chef-server-proxy.key > chef-server-proxy.crt
-  cat chef-server-proxy.key chef-server-proxy.crt > chef-server-proxy.pem
+  openssl genrsa 2048 > #{node['fqdn']}.key
+  openssl req -subj "#{node['chef_server']['ssl_req']}" -new -x509 -nodes -sha1 -days 3650 -key #{node['fqdn']}.key > #{node['fqdn']}.crt
+  cat #{node['fqdn']}.key #{node['fqdn']}.crt > #{node['fqdn']}.pem
   EOH
-  not_if { ::File.exists?("/etc/chef/certificates/chef-server-proxy.pem") }
+  not_if { ::File.exists?("/etc/chef/certificates/#{node['fqdn']}.pem") }
 end
 
 web_app "chef-server-proxy" do
   template "chef_server.conf.erb"
-  server_name "localhost"
+  server_name node['fqdn']
   server_aliases [ node['hostname'], node['fqdn'], 'chef-server-proxy', "chef.#{node['domain']}" ]
   log_dir node['apache']['log_dir']
 end
