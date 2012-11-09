@@ -214,7 +214,7 @@ when "init"
     end
 
     link "/usr/sbin/#{svc}" do
-      to "#{node['languages']['ruby']['bin_dir']}/#{svc}"
+      to "#{Gem.bindir}/#{svc}"
     end
 
     service "#{svc}" do
